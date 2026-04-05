@@ -1,0 +1,24 @@
+npm init : to initialize the project
+npm i express
+setup package.json : scripts : "start": "node index.js" opitional!
+setup .env for environment variables
+npm i dotenv : to install dotenv
+dotenv use for environment variables 
+
+npm i axios : advance than fetch and does not need to convert .json()
+
+
+In Frontend only
+proxy : 'http://localhost:3000' = > when using react -> package.json , proxy is used to determine api's to retain flexibility rather than writing same thing again and again
+(Vite has different way to be done)
+export default defineConfig({
+  plugins: [react()],
+  server:{
+    proxy:{
+      '/api':{
+        target: 'http://localhost:3000'        
+      }
+    }
+  }
+}) now whenever /api written, local... will be append
+
