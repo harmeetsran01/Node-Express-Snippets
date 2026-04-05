@@ -1,0 +1,15 @@
+{
+  "name": "03proj",
+  "version": "1.0.0",
+  "description": "practising data modeling and mongoose",
+  "license": "ISC",
+  "author": "Harmeet Singh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mongoose": "^9.4.1"
+  }
+}
