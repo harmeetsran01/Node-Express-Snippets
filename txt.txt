@@ -22,3 +22,6 @@ export default defineConfig({
   }
 }) now whenever /api written, local... will be append
 
+npm i mongoose
+npm i cors 
+npm i cookie-parser cors
