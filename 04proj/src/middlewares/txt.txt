@@ -1,0 +1,5 @@
+It is used to Check certain Scenerios:
+    Whether the user is admin or not? :
+    Whether the user is logged in or not? :
+    Whether the user is authorized or not? :
+    Then Processed

@@ -1,0 +1,3 @@
+Ulitiy is used to repeat the same code again and again
+Maintain Clarity and cleanness in code
+More Productive
