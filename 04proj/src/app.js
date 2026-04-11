@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 
 // app.use is for middleware, cors, cookie-parser, express.json, express.urlencoded
-
+const app = express()
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true
@@ -26,5 +26,12 @@ app.use(cookieParser())
 //  app.get is not only having (res,req): it is having (err,req,res,next)
 //  next (is a flag) is used to call the next middleware
 
-const app = express()
+
+
+//Routes import
+import userRouter from './routes/user.routes.js'
+
+// Routes declaration
+app.use("/users", userRouter)
+
 export default app
