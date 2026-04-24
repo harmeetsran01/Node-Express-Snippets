@@ -23,4 +23,4 @@ class ApiError extends Error{ //Error is class in runtime env
     }
 }
 
-export {ApiError}
+export default ApiError
