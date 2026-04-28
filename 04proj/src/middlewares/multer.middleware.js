@@ -1,5 +1,5 @@
 import multer from "multer";
-
+// use context in route
 const storage = multer.diskStorage({
     //         req=>body have json data, file is uploaded file
     destination: function (req, file, cb) {
