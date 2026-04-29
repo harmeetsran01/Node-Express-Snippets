@@ -25,7 +25,7 @@ function wrapper(fn){
 
 const hello = wrapper((x)=>console.log(x)) //For reference: Wrapper func
 
-hello(10)
+hello('Wrapper func in async testing')
 function asynchandler2(fn){
     return async (req,res,next) => {
 //         Browser hits /

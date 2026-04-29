@@ -9,13 +9,14 @@ dns.setServers([
 const connectDB = async () => {
     try {
         console.log(`Connection Initialized: ${process.env.MONGO_URI}`)
-        const connectionInstance = await mongoose.connect(process.env.MONGO_URI, { dbName: DB_NAME, serverSelectionTimeoutMS: 15000 })
+        const connectionInstance = await mongoose.connect(process.env.MONGO_URI, { dbName: DB_NAME
+            // , serverSelectionTimeoutMS: 15000 
+        })
         console.log(`Connected to MongoDB !! DB HOST: ${connectionInstance.connection.host}`)
     }
     catch (e) {
         console.error("Error: ", e)
         process.exit(1)
-        throw e
     }
 }
 

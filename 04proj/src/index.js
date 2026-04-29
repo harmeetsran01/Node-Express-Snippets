@@ -1,10 +1,13 @@
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
 import app from './app.js'   // importing app from app.js
+import { cloudnaryConfig } from "./utility/cloudinary.js"
 
 // config
 dotenv.config({ path: './.env' })
 connectDB()
+cloudnaryConfig()
+
 
 app.listen(process.env.PORT,()=>{
     try{

@@ -21,10 +21,13 @@ import ApiResponse from "../utility/apiResponse.js";
  * req.body: request from body, json or form {fullname,email,username,password}
  * req.files: request from files []
  */
+
 const registerUser = asyncHandler(async (req, res) => {
 
   const { fullname, email, username, password } = req.body
-  console.log(email)
+  console.log("--- REGISTER DEBUG ---")
+  console.log("req.body:", req.body)
+  console.log("req.files:", req.files)
 
   // return res.status(200).json({
   //   message:"User registered successfully"
@@ -46,19 +49,23 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "User already exists")
   }
 
-  const avatarLocalPath = req.files?.avatar[0]?.path
-  const coverLocalPath = req.files?.coverImage[0]?.path
+  const avatarLocalPath = req.files?.avatar?.[0]?.path
+  console.log("avatarLocalPath:", avatarLocalPath)
+  const coverLocalPath = req.files?.coverImage?.[0]?.path
+  console.log("coverLocalPath:", coverLocalPath)
 
   if (!avatarLocalPath)
     throw new ApiError(400, "avatar is required")
 
   const avatarUrl = await uploadOnCloudinary(avatarLocalPath)
+  console.log("avatarUrl response:", avatarUrl)
   const coverImageUrl = await uploadOnCloudinary(coverLocalPath)
+  console.log("coverImageUrl response:", coverImageUrl)
 
 
   //check url exists or not if not throw error
-  if (!avatarUrl || !coverImageUrl)
-    throw new ApiError(400, "Something went wrong while uploading")
+  if (!avatarUrl)
+    throw new ApiError(400, "Something went wrong while uploading avatar")
 
   const user = await User.create({
     fullname,
