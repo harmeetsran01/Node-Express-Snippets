@@ -61,11 +61,10 @@ const userSchema = new Schema({
 // here we are using it to hash the password before saving
 // pre("save",) : save is operation which is done, again read docs for more
 // ()=>{} is not used as this reference will not be used
-userSchema.pre("save",async function(next){
-    if(!this.isModified("password")) return next()
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
 
-    this.password = await bcrypt.hash(this.password,10)
-    next()
+    this.password = await bcrypt.hash(this.password, 10)
 })
 
 // Instance method : used to perform some operation on the instance of the model

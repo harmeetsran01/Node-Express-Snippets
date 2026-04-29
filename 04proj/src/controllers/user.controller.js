@@ -50,9 +50,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const avatarLocalPath = req.files?.avatar?.[0]?.path
-  console.log("avatarLocalPath:", avatarLocalPath)
   const coverLocalPath = req.files?.coverImage?.[0]?.path
-  console.log("coverLocalPath:", coverLocalPath)
 
   if (!avatarLocalPath)
     throw new ApiError(400, "avatar is required")
@@ -67,6 +65,8 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!avatarUrl)
     throw new ApiError(400, "Something went wrong while uploading avatar")
 
+  console.log('Creating user');
+
   const user = await User.create({
     fullname,
     email: email.toLowerCase(),
@@ -75,10 +75,12 @@ const registerUser = asyncHandler(async (req, res) => {
     avatar: avatarUrl.url,
     coverImage: coverImageUrl?.url || "",
   })
+  console.log('Created user');
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"   //use(- minus)to exclude password
   )
+  console.log('Password removes ');
 
   if (!createdUser)
     throw new ApiError(500, "Something went wrong while creating user")
@@ -91,4 +93,91 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
-export { registerUser }
+const login = asyncHandler(async (req, res) => {
+
+  /**
+   * Todo's
+   * req body -> data
+   * username/email base accesss
+   * find user
+   * password check
+   * generate access token
+   * generate refresh token
+   * send response with cookies
+   */
+
+  const { email, username, password } = req.body
+  if (!username || !email) throw new ApiError(400, 'Username or password is required')
+
+  const user = await User.findOne({
+    $or: [{ username }, { email }]
+  })
+
+  if (!user) throw new ApiError(404, "User not found")
+
+  const isPasswordCorrect = await user.isPasswordCorrect(password)
+  if (!isPasswordCorrect) throw new ApiError(401, "Invalid Password")
+
+  const generateAcessandRefreshTokens = async (userId) => {
+    try {
+      const user = await User.findById(userId)
+      const accessToken = user.generateAccessToken()
+      const refreshToken = user.generateRefreshToken()
+      console.log('tokens generated')
+      user.refreshToken = refreshToken
+      await user.save({ validateBeforeSave: false }) // this prevent validation process, which increases speed. Validation like trimming and stuff are skipped. It is only safe to skip validations only when we know the data is correct. and here we know the data is correct
+      return { accessToken, refreshToken }
+    }
+    catch (e) { throw new ApiError(500, 'Something went wrong while generating and access tokens') }
+  }
+
+  const { accessToken, refreshToken } = await generateAcessandRefreshTokens(user._id)
+  const loggedin = await User.findById(user._id).select('-password -refreshToken')
+
+  // options for cookies, httponly will restruict frontend to edit cookie 
+  const options = {
+    httpOnly: true,
+    secure: true,
+    // sameSite: "strict"
+  }
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(new ApiResponse(
+      200,
+      { user: loggedin, accessToken, refreshToken },
+      "User logged in successfully",
+  ))
+})
+
+const logout = asyncHandler(async (req,res)=>{
+  try{
+    await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: { refreshToken: "" } // removes refreshToken field from document
+      },
+      { new: true } // return updated document
+    )
+    const options = {
+    httpOnly: true,
+    secure: true,
+  }
+
+  return res.status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("refreshToken", options)
+  .json(new ApiResponse(
+    200,
+    {},
+    "User logged out successfully",
+  ))
+    
+  }
+  catch(e){
+    console.error(e ||e.message)
+    throw new ApiError(500,"Something went wrong while logging out:" + e?.message)
+  }
+})
+export { registerUser, login ,logout}
