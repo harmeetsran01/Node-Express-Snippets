@@ -1,14 +1,14 @@
 // Handles Error
 
 class ApiError extends Error{ //Error is class in runtime env
-    constructor(stautscode,
+    constructor(statusCode,
                 message="Something went wrong",
                 errors=[],
                 stack=""
     ){
         // overwriting constructor
         super(message)
-        this.stautscode = stautscode 
+        this.statusCode = statusCode 
         this.data = null
         this.message = message
         this.success = false

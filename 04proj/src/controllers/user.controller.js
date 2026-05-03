@@ -107,7 +107,7 @@ const login = asyncHandler(async (req, res) => {
    */
 
   const { email, username, password } = req.body
-  if (!username || !email) throw new ApiError(400, 'Username or password is required')
+  if (!email) throw new ApiError(400, 'Username or email is required')
 
   const user = await User.findOne({
     $or: [{ username }, { email }]
@@ -121,10 +121,13 @@ const login = asyncHandler(async (req, res) => {
   const generateAcessandRefreshTokens = async (userId) => {
     try {
       const user = await User.findById(userId)
-      const accessToken = user.generateAccessToken()
-      const refreshToken = user.generateRefreshToken()
-      console.log('tokens generated')
+      const accessToken = await user.generateAccessToken()
+      console.log('accessToken generated: ', accessToken)
+
+      const refreshToken = await user.generateRefreshToken()
       user.refreshToken = refreshToken
+      console.log('refreshToken generated: ', refreshToken)
+
       await user.save({ validateBeforeSave: false }) // this prevent validation process, which increases speed. Validation like trimming and stuff are skipped. It is only safe to skip validations only when we know the data is correct. and here we know the data is correct
       return { accessToken, refreshToken }
     }
@@ -140,13 +143,17 @@ const login = asyncHandler(async (req, res) => {
     secure: true,
     // sameSite: "strict"
   }
+  console.log('Setting cookies');
+  console.log('accessToken', accessToken);
+  console.log('refreshToken', refreshToken);
+  
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(new ApiResponse(
       200,
-      { user: loggedin, accessToken, refreshToken },
+      { user: loggedin },
       "User logged in successfully",
   ))
 })

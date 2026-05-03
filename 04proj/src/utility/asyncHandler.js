@@ -4,7 +4,7 @@ export const asyncHandler = (fn) => async (req,res,next) => {
         await fn(req,res,next) // if fn is getUser() then await getUser() is called
     }
     catch(e){
-        res.status(e.code || 500).json({success:false,message:e.message})
+        res.status(e.statusCode || 500).json({statusCode:e.statusCode || 500,success:false,message:e.message})
         // err is avail in async(parameter)
     }
 }
