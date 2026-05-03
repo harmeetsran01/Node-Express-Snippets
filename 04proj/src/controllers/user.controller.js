@@ -3,6 +3,7 @@ import ApiError from "../utility/apiError.js";
 import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utility/cloudinary.js";
 import ApiResponse from "../utility/apiResponse.js";
+import jwt from "jsonwebtoken"
 
 
 /** 
@@ -21,6 +22,34 @@ import ApiResponse from "../utility/apiResponse.js";
  * req.body: request from body, json or form {fullname,email,username,password}
  * req.files: request from files []
  */
+
+// Global Dec
+const generateAcessandRefreshTokens = async (userId) => {
+    try {
+      const user = await User.findById(userId)
+      const accessToken = await user.generateAccessToken()
+      // console.log('accessToken generated: ', accessToken)
+
+      const refreshToken = await user.generateRefreshToken()
+      user.refreshToken = refreshToken
+      // console.log('refreshToken generated: ', refreshToken)
+
+      await user.save({ validateBeforeSave: false }) // this prevent validation process, which increases speed. Validation like trimming and stuff are skipped. It is only safe to skip validations only when we know the data is correct. and here we know the data is correct
+      return { accessToken, refreshToken }
+    }
+    catch (e) { throw new ApiError(500, 'Something went wrong while generating and access tokens') }
+  }
+
+// options for cookies, httponly will restruict frontend to edit cookie 
+  const options = {
+    httpOnly: true,
+    secure: true,
+    // sameSite: "strict"
+  }
+
+  // Global Dec closed
+
+
 
 const registerUser = asyncHandler(async (req, res) => {
 
@@ -118,34 +147,13 @@ const login = asyncHandler(async (req, res) => {
   const isPasswordCorrect = await user.isPasswordCorrect(password)
   if (!isPasswordCorrect) throw new ApiError(401, "Invalid Password")
 
-  const generateAcessandRefreshTokens = async (userId) => {
-    try {
-      const user = await User.findById(userId)
-      const accessToken = await user.generateAccessToken()
-      console.log('accessToken generated: ', accessToken)
-
-      const refreshToken = await user.generateRefreshToken()
-      user.refreshToken = refreshToken
-      console.log('refreshToken generated: ', refreshToken)
-
-      await user.save({ validateBeforeSave: false }) // this prevent validation process, which increases speed. Validation like trimming and stuff are skipped. It is only safe to skip validations only when we know the data is correct. and here we know the data is correct
-      return { accessToken, refreshToken }
-    }
-    catch (e) { throw new ApiError(500, 'Something went wrong while generating and access tokens') }
-  }
-
   const { accessToken, refreshToken } = await generateAcessandRefreshTokens(user._id)
   const loggedin = await User.findById(user._id).select('-password -refreshToken')
 
-  // options for cookies, httponly will restruict frontend to edit cookie 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    // sameSite: "strict"
-  }
+  
   console.log('Setting cookies');
-  console.log('accessToken', accessToken);
-  console.log('refreshToken', refreshToken);
+  // console.log('accessToken', accessToken);
+  // console.log('refreshToken', refreshToken);
   
   return res
     .status(200)
@@ -165,7 +173,7 @@ const logout = asyncHandler(async (req,res)=>{
       {
         $set: { refreshToken: "" } // removes refreshToken field from document
       },
-      { new: true } // return updated document
+      { returnDocument: after } // return updated document
     )
     const options = {
     httpOnly: true,
@@ -187,4 +195,41 @@ const logout = asyncHandler(async (req,res)=>{
     throw new ApiError(500,"Something went wrong while logging out:" + e?.message)
   }
 })
-export { registerUser, login ,logout}
+
+const refreshAccessToken = asyncHandler(async(req,res) =>{
+  try {
+    const user = await User.findById(req.user._id)
+  
+    if(!user) throw new ApiError(401,"Invalid user")
+    
+    const userRefreshToken = user.refreshToken
+    const decodedRefreshToken =jwt.verify(
+  
+      userRefreshToken,
+      process.env.REFRESH_TOKEN
+    )
+  
+    if(!decodedRefreshToken?._id) throw new ApiError(401,"Invalid user")
+    if(decodedRefreshToken?.refreshToken !== user.refreshToken) throw new ApiError(401,"Refresh Token used or Expired")
+  
+    const {accessToken,refreshToken} = await generateAcessandRefreshTokens(user._id)
+    return res.status(200).
+    cookie("accessToken",accessToken,options).
+    cookie("refreshToken",refreshToken,options).
+    json(
+      new ApiResponse(
+        200,
+        {
+          accessToken,
+          refreshToken
+        },
+        "Tokens refreshed successfully"
+      )
+    )
+  } catch (error) {
+    console.error(e ||e.message)
+    throw new ApiError(500,"Something went wrong while refreshing access token: " + error?.message)
+  }
+})
+
+export { registerUser, login ,logout , refreshAccessToken }
