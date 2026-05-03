@@ -248,4 +248,4 @@ const changePassword = asyncHandler(async(req,res)=>{
     throw new ApiError(500,"Something went wrong while changing password: " + error?.message)
   }
 })
-export { registerUser, login ,logout , refreshAccessToken }
+export { registerUser, login ,logout , refreshAccessToken, changePassword }
