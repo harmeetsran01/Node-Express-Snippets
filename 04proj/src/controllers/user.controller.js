@@ -175,10 +175,6 @@ const logout = asyncHandler(async (req, res) => {
       },
       { returnDocument: 'after' } // return updated document
     )
-    const options = {
-      httpOnly: true,
-      secure: true,
-    }
 
     return res.status(200)
       .clearCookie("accessToken", options)
@@ -249,4 +245,63 @@ const changePassword = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong while changing password: " + error?.message)
   }
 })
-export { registerUser, login, logout, refreshAccessToken, changePassword }
+
+const getCurrentUser = asyncHandler(async(req,res)=>{
+  try {
+    return res.status(200)
+    .json(new ApiResponse(
+      200,
+      req.user,
+      "User fetched successfully",
+    ))
+  } catch (error) {
+    console.error(error ||error.message)
+    throw new ApiError(500,"Something went wrong while getting current user: " + error?.message)
+  }
+})
+
+const updateAccountDetails = asyncHandler(async(req,res)=>{
+  const {fullname,email,username}=req.body
+  const user = await User.findByIdAndUpdate(req.user._id,
+    {
+      $set:{fullname,email,username}
+    },
+    {
+      returnDocument: 'after'
+    }
+    ).select("-password -refreshToken")
+  return res.status(200)
+  .json(new ApiResponse(
+    200,
+    user,
+    "User updated successfully",
+  ))
+})
+
+const updateUserAvatar = asyncHandler(async(req,res)=>{
+  // const avatarLocalPath=req.files?.avatar?.[0]?.path
+  const avatarLocalPath=req.file?.avatar?.[0]?.path
+  if(!avatarLocalPath)
+    throw new ApiError(400,"Avatar is required")
+
+    const avatarUrl=await uploadOnCloudinary(avatarLocalPath)
+    if(!avatarUrl)
+      throw new ApiError(400,"Something went wrong while uploading new avatar")
+    
+    const user = await User.findByIdAndUpdate(req.user._id,
+      {
+        $set:{avatar:avatarUrl.url}
+      },
+      {
+        returnDocument: 'after'
+      }
+      ).select("-password -refreshToken")
+    return res.status(200)
+    .json(new ApiResponse(
+      200,
+      user,
+      "User avatar updated successfully",
+    ))
+})
+
+export { registerUser, login, logout, refreshAccessToken, changePassword,updateAccountDetails,getCurrentUser, updateUserAvatar }

@@ -11,5 +11,3 @@ git commit -m "%msg%"
 
 :: 3. Push to origin master
 git push origin master
-
-pause
