@@ -25,29 +25,29 @@ import jwt from "jsonwebtoken"
 
 // Global Dec
 const generateAcessandRefreshTokens = async (userId) => {
-    try {
-      const user = await User.findById(userId)
-      const accessToken = await user.generateAccessToken()
-      // console.log('accessToken generated: ', accessToken)
+  try {
+    const user = await User.findById(userId)
+    const accessToken = await user.generateAccessToken()
+    // console.log('accessToken generated: ', accessToken)
 
-      const refreshToken = await user.generateRefreshToken()
-      user.refreshToken = refreshToken
-      // console.log('refreshToken generated: ', refreshToken)
+    const refreshToken = await user.generateRefreshToken()
+    user.refreshToken = refreshToken
+    // console.log('refreshToken generated: ', refreshToken)
 
-      await user.save({ validateBeforeSave: false }) // this prevent validation process, which increases speed. Validation like trimming and stuff are skipped. It is only safe to skip validations only when we know the data is correct. and here we know the data is correct
-      return { accessToken, refreshToken }
-    }
-    catch (e) { throw new ApiError(500, 'Something went wrong while generating and access tokens') }
+    await user.save({ validateBeforeSave: false }) // this prevent validation process, which increases speed. Validation like trimming and stuff are skipped. It is only safe to skip validations only when we know the data is correct. and here we know the data is correct
+    return { accessToken, refreshToken }
   }
+  catch (e) { throw new ApiError(500, 'Something went wrong while generating and access tokens') }
+}
 
 // options for cookies, httponly will restruict frontend to edit cookie 
-  const options = {
-    httpOnly: true,
-    secure: true,
-    // sameSite: "strict"
-  }
+const options = {
+  httpOnly: true,
+  secure: true,
+  // sameSite: "strict"
+}
 
-  // Global Dec closed
+// Global Dec closed
 
 
 
@@ -150,11 +150,11 @@ const login = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAcessandRefreshTokens(user._id)
   const loggedin = await User.findById(user._id).select('-password -refreshToken')
 
-  
+
   console.log('Setting cookies');
   // console.log('accessToken', accessToken);
   // console.log('refreshToken', refreshToken);
-  
+
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -163,89 +163,90 @@ const login = asyncHandler(async (req, res) => {
       200,
       { user: loggedin },
       "User logged in successfully",
-  ))
+    ))
 })
 
-const logout = asyncHandler(async (req,res)=>{
-  try{
+const logout = asyncHandler(async (req, res) => {
+  try {
     await User.findByIdAndUpdate(
       req.user._id,
       {
         $set: { refreshToken: "" } // removes refreshToken field from document
       },
-      { returnDocument: after } // return updated document
+      { returnDocument: 'after' } // return updated document
     )
     const options = {
-    httpOnly: true,
-    secure: true,
-  }
+      httpOnly: true,
+      secure: true,
+    }
 
-  return res.status(200)
-  .clearCookie("accessToken", options)
-  .clearCookie("refreshToken", options)
-  .json(new ApiResponse(
-    200,
-    {},
-    "User logged out successfully",
-  ))
-    
+    return res.status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new ApiResponse(
+        200,
+        {},
+        "User logged out successfully",
+      ))
+
   }
-  catch(e){
-    console.error(e ||e.message)
-    throw new ApiError(500,"Something went wrong while logging out:" + e?.message)
+  catch (e) {
+    console.error(e || e.message)
+    throw new ApiError(500, "Something went wrong while logging out:" + e?.message)
   }
 })
 
-const refreshAccessToken = asyncHandler(async(req,res) =>{
+const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
-  
-    if(!user) throw new ApiError(401,"Invalid user")
-    
+
+    if (!user) throw new ApiError(401, "Invalid user")
+
     const userRefreshToken = user.refreshToken
-    const decodedRefreshToken =jwt.verify(
-  
+    const decodedRefreshToken = jwt.verify(
+
       userRefreshToken,
       process.env.REFRESH_TOKEN
     )
-  
-    if(!decodedRefreshToken?._id) throw new ApiError(401,"Invalid user")
-    if(decodedRefreshToken?.refreshToken !== user.refreshToken) throw new ApiError(401,"Refresh Token used or Expired")
-  
-    const {accessToken,refreshToken} = await generateAcessandRefreshTokens(user._id)
+
+    if (!decodedRefreshToken?._id) throw new ApiError(401, "Invalid user")
+    if (decodedRefreshToken?.refreshToken !== user.refreshToken) throw new ApiError(401, "Refresh Token used or Expired")
+
+    const { accessToken, refreshToken } = await generateAcessandRefreshTokens(user._id)
     return res.status(200).
-    cookie("accessToken",accessToken,options).
-    cookie("refreshToken",refreshToken,options).
-    json(
-      new ApiResponse(
-        200,
-        {
-          accessToken,
-          refreshToken
-        },
-        "Tokens refreshed successfully"
+      cookie("accessToken", accessToken, options).
+      cookie("refreshToken", refreshToken, options).
+      json(
+        new ApiResponse(
+          200,
+          {
+            accessToken,
+            refreshToken
+          },
+          "Tokens refreshed successfully"
+        )
       )
-    )
   } catch (error) {
-    console.error(e ||e.message)
-    throw new ApiError(500,"Something went wrong while refreshing access token: " + error?.message)
+    console.error(e || e.message)
+    throw new ApiError(500, "Something went wrong while refreshing access token: " + error?.message)
   }
 })
 
-const changePassword = asyncHandler(async(req,res)=>{
+const changePassword = asyncHandler(async (req, res) => {
   try {
-    const {oldPassword,newPassword} = req.body
+    const { oldPassword, newPassword } = req.body
     const user = await User.findById(req.user._id)
-    if(!user) throw new ApiError(401,"Invalid user")
+    if (!user) throw new ApiError(401, "Invalid user")
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
-    if(!isPasswordCorrect) throw new ApiError(401,"Invalid Password")
+    if (!isPasswordCorrect) throw new ApiError(401, "Invalid Password")
     user.password = newPassword
-    await user.save({validateBeforeSave:false})
-    return res.status(200).json(new ApiResponse(200,"Password changed successfully"))
+    await user.save({ validateBeforeSave: false })
+    return res.status(200).
+      json(new ApiResponse(200, "Password changed successfully"))
 
   } catch (error) {
-    console.error(error ||error.message)
-    throw new ApiError(500,"Something went wrong while changing password: " + error?.message)
+    console.error(error || error.message)
+    throw new ApiError(500, "Something went wrong while changing password: " + error?.message)
   }
 })
-export { registerUser, login ,logout , refreshAccessToken, changePassword }
+export { registerUser, login, logout, refreshAccessToken, changePassword }
