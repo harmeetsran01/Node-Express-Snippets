@@ -9,5 +9,5 @@ git add "04proj"
 :: 2. Commit with the input message
 git commit -m "%msg%"
 
-:: 3. Push to origin master
+:: 3. Push to origin masternpm ru
 git push origin master
