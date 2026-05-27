@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//e/Project/04proj-frontend/**)",
+      "Bash(npm install *)",
+      "Bash(npx tailwindcss *)"
+    ]
+  }
+}

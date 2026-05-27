@@ -1,0 +1,67 @@
+Why BSON?
+Binary JSON
+Used by MongoDB to store data
+More efficient than JSON
+Storing more data types:
+                        ObjectId
+                        Date
+                        BinData
+                        Regular expressions
+                        Decimal128
+Json is human readable, BSON is not x04hello , x00, x100x x05world => something like this
+
+Mongodb Database or collections ends with s, like student -> students
+
+CRUD
+C: Create
+R: Read
+U: Update
+D: Delete
+
+Schema
+A structure that defines the fields and datatypes that a document will have.
+
+C: INSERT, insertOne({<data>}), insertMany(array of objects)
+
+
+R: FIND, 
+findOne({<finding through unique value>}) !findone returns the first one which matches our query, 
+findMany({<finding through unique value>}), 
+filter({<finding through unique value>})
+
+
+U: UPDATE, 
+updateOne({finding through unique value},{$set as atomic operator : {<update : value>}}), 
+updateMany, 
+replaceOne, 
+replaceMany
+
+
+D: DELETE, 
+deleteOne({finding through unique value}), 
+deleteMany, 
+remove
+
+Atomic Operators
+$set : Updating a specific field
+$unset : Removing a field
+$inc : Incrementing a field
+$mul : Multiplying a field
+$rename : Renaming a field
+$max : Setting the maximum value of a field
+$min : Setting the minimum value of a field
+$currentDate
+$gte : Greater than or equal to
+$gt : Greater than , eg abc.find({coursecount:{$gt: 30}})
+$lt : Less than
+$lte : Less than or equal to
+
+$match
+$lookup: for aggregation
+$group
+$sort
+$limit
+$project
+
+$lookup: for aggregation
+$addFields: for aggregation
