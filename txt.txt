@@ -25,3 +25,12 @@ export default defineConfig({
 npm i mongoose
 npm i cors 
 npm i cookie-parser cors
+npm i mongoose-aggregate-paginate-v2 :like plugin
+
+bcrypt: library for Node js {hash your password}
+bcryptjs: Optimized brcypt in plain JavaScript with zero dependencies 
+jsonwebtoken: Json Web Token {Mostly use for crypto}, has header{info}, payload{data}, verify sig{sig hash and secret your hash}
+
+express-fileupload, multer: use for fileuploading, multer is modern approach
+cloudinary: used to store images and videos here
+

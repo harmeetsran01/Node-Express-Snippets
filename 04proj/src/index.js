@@ -8,7 +8,6 @@ dotenv.config({ path: './.env' })
 connectDB()
 cloudnaryConfig()
 
-
 app.listen(process.env.PORT,()=>{
     try{
     console.log(`Server is running on port ${process.env.PORT}`)
